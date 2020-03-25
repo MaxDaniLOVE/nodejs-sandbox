@@ -1,11 +1,30 @@
-const fs = require('fs'); // file system
+const express = require('express');
+const bodyParser = require('body-parser');
 
-const userName = 'Max Danilau';
+const app = express();
 
-fs.writeFile('user-data.txt', 'Name: ' + userName, (err) => { // creates file with setted name, data, also used callback
-  if (err) {
-    console.log(err);
-    return;
+app.use((req, res, next) => {
+  let body = '';
+  req.on('end', () => {
+    const userName = body.split('=')[1];
+    console.log(body)
+    if (userName) {
+      req.body = { name: userName };
+    }
+    next();
+  });
+  req.on('data', chunk => {
+    body += chunk;
+  });
+});
+
+app.use((req, res, next) => {
+  if (req.body) {
+    return res.send('<h1>' + req.body.name + '</h1>');
   }
-  console.log('success!')
-})
+  res.send(
+    '<form method="POST"><input type="text" name="username"><button type="submit">Create User</button></form>'
+  );
+});
+
+app.listen(5000);
